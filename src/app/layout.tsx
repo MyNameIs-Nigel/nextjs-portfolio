@@ -18,7 +18,7 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   title: "Nigel Smith — Photographer",
   description:
-    "Portfolio of Alex Mercer — photographer and videographer crafting bold visual narratives for the creative industry.",
+    "Portfolio of Nigel Smith — photographer and videographer crafting bold visual narratives for the creative industry.",
   openGraph: {
     title: "Nigel Smith — Visual Storyteller",
     description:
