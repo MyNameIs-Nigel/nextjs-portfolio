@@ -99,6 +99,11 @@ export default async function BlogPostPage({ params }: Props) {
               <span className="text-sm text-white/40">
                 {formatDate(post.date)} · {post.readingTime}
               </span>
+              {post.modified && (
+                <span className="text-sm text-white/35 italic">
+                  Last updated: {formatDate(post.modified)}
+                </span>
+              )}
             </div>
 
             <h1 className="font-[family-name:var(--font-playfair)] text-4xl font-bold leading-tight text-white sm:text-5xl lg:text-6xl">

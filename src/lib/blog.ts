@@ -28,10 +28,13 @@ export function getAllPosts(): PostMeta[] {
     const { data, content } = matter(raw);
     const stats = readingTime(content);
 
+    const modified = data.modified as string | undefined;
+
     return {
       slug,
       title: data.title as string,
       date: data.date as string,
+      ...(modified && modified !== data.date ? { modified } : {}),
       category: data.category as Category,
       excerpt: data.excerpt as string,
       coverImage: data.coverImage as string,
@@ -55,10 +58,13 @@ export function getPostBySlug(slug: string): Post | null {
       const { data, content } = matter(raw);
       const stats = readingTime(content);
 
+      const modified = data.modified as string | undefined;
+
       return {
         slug,
         title: data.title as string,
         date: data.date as string,
+        ...(modified && modified !== data.date ? { modified } : {}),
         category: data.category as Category,
         excerpt: data.excerpt as string,
         coverImage: data.coverImage as string,
