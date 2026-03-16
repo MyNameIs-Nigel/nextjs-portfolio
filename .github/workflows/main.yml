@@ -1,4 +1,4 @@
-name: Deploy to Vercel
+name: Push to nextjs-portfolio
 
 on:
   push:
@@ -16,10 +16,10 @@ jobs:
         if: always()
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
-          title: "Deploy to Nigel Smith's Portfolio"
+          title: "Push to nextjs-portfolio"
           description: |
             **Commit:** ${{ github.event.head_commit.message }}
             **Branch:** `${{ github.ref_name }}`
             **Triggered by:** ${{ github.actor }}
             **Live URL:** https://www.ndsironwood.com
-          username: ndsironwood Portfolio
+          username: Next.js Portfolio

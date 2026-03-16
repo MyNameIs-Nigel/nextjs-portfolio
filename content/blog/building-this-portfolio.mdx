@@ -1,0 +1,53 @@
+---
+title: "Building This Portfolio with Next.js and Framer Motion"
+date: "2026-03-16"
+category: "Coding Projects"
+excerpt: "A breakdown of how I built this site — the design decisions, the tech stack, and a few things I'd do differently if I started over today."
+coverImage: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&q=80"
+---
+
+## Why I Built It Myself
+
+Portfolio builders exist. Squarespace, Format, Cargo — all of them are fine. I've used most of them. But every time I hit the edge of what a template could do, I'd feel the ceiling close in. I wanted something that felt exactly like the work it was meant to represent: considered, intentional, a little unusual.
+
+So I built it.
+
+## The Stack
+
+- **Next.js 16** with the App Router — Server Components changed how I think about what goes to the client
+- **Tailwind CSS v4** — the new `@theme inline` approach in CSS is much cleaner than a config file
+- **Framer Motion** — every meaningful UI state transition has a physical quality to it
+- **Vercel** — hobby plan, zero config, deploys on push
+
+No backend. No database. No auth. Just files and components.
+
+## The Design System
+
+I started with a color palette before writing a single line of code. The constraint: two neutrals, one accent, nothing else. The accent (`#c2410c`) is a warm burnt orange that has enough energy without being loud. Everything else is stone-based.
+
+Typography is two fonts: Inter for body text (exceptional legibility at small sizes) and Playfair Display for display headings (the serif contrast gives the site its visual character).
+
+## What Framer Motion Does Here
+
+The site uses Framer Motion in a few specific ways:
+
+1. **Scroll-triggered reveals** — `useInView` combined with `motion.div` fade-up animations as sections enter the viewport
+2. **Navbar state** — transparent over the hero, transitioning to frosted glass as you scroll
+3. **Portfolio lightbox** — scale and fade animation for the full-size image overlay
+4. **Blog reading progress** — a thin accent-colored bar at the top of every post that fills as you read
+
+The reading progress bar is my favorite detail. It's built with `useScroll` and `useSpring`, which gives it a slight lag that feels physical rather than mechanical.
+
+## What I'd Do Differently
+
+**Start with content.** I designed the visual system before I had real content to put in it, which meant I was designing for hypothetical text. Some components needed significant rework once real copy went in.
+
+**Design mobile-first for real.** I said I was designing mobile-first. I was not. I designed desktop and adjusted downward. The mobile experience is good, but it would be better if I'd started from the other direction.
+
+**Use a CMS sooner.** This blog is MDX files in the repository. That's fine for now. But the moment I want to publish from my phone, or let someone else contribute, MDX in a git repo becomes friction.
+
+## The Part I'm Most Proud Of
+
+The hero section loads a full-screen video with a graceful fallback to a still image. The timing of the text animations is designed so they finish just as the video settles — you get a moment of stillness before the first element appears, which creates a sense of intention rather than the page just loading.
+
+It took longer to get right than anything else on the site. It was worth it.
