@@ -42,3 +42,6 @@ next-env.d.ts
 
 
 content/blog/*ignore.mdx
+
+# cluade
+.claude/*

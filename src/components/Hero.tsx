@@ -1,24 +1,41 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 
+const HERO_IMAGES = [
+  "/hero/hero1.jpg",
+  "/hero/hero2.jpg",
+  "/hero/hero3.jpg",
+  "/hero/hero4.jpg",
+] as const;
+const SESSION_KEY = "heroImage";
+
 export default function Hero() {
+  const [src, setSrc] = useState<string>(HERO_IMAGES[0]);
+
+  useEffect(() => {
+    const stored = sessionStorage.getItem(SESSION_KEY);
+    const pick =
+      stored && (HERO_IMAGES as readonly string[]).includes(stored)
+        ? stored
+        : HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)];
+    if (!stored) sessionStorage.setItem(SESSION_KEY, pick);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing with sessionStorage post-mount to avoid SSR/CSR hydration mismatch
+    setSrc(pick);
+  }, []);
+
   return (
     <section className="relative flex h-screen w-full items-end overflow-hidden">
-      {/* Background video / image fallback */}
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        poster="/hero.jpg"
+      <Image
+        src={src}
+        alt=""
+        fill
+        priority
+        sizes="100vw"
         className="absolute inset-0 h-full w-full object-cover"
-      >
-        <source
-          src="https://cdn.coverr.co/videos/coverr-a-photographer-taking-photos-in-a-studio-1584/1080p.mp4"
-          type="video/mp4"
-        />
-      </video>
+      />
 
       {/* Dark overlay gradient */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
