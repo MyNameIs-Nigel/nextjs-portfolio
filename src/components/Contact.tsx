@@ -6,11 +6,49 @@ import { motion, useInView } from "framer-motion";
 export default function Contact() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitted(true);
+    setStatus("loading");
+    setErrorMsg(null);
+
+    const form = e.currentTarget;
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value.trim();
+    const phone = (form.elements.namedItem("phone") as HTMLInputElement).value.trim();
+
+    if (!email && !phone) {
+      setErrorMsg("Please provide an email address or phone number.");
+      setStatus("error");
+      return;
+    }
+
+    const body = {
+      name: (form.elements.namedItem("name") as HTMLInputElement).value,
+      email,
+      phone,
+      project: (form.elements.namedItem("project") as HTMLSelectElement).value,
+      message: (form.elements.namedItem("message") as HTMLTextAreaElement).value,
+    };
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const json = (await res.json()) as { ok: boolean; error?: string };
+      if (json.ok) {
+        setStatus("success");
+      } else {
+        setErrorMsg(json.error ?? "Something went wrong. Please try again.");
+        setStatus("error");
+      }
+    } catch {
+      setErrorMsg("Could not send your message. Please try again.");
+      setStatus("error");
+    }
   };
 
   return (
@@ -56,32 +94,6 @@ export default function Contact() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="mt-10 space-y-4"
           >
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10">
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  className="text-accent"
-                >
-                  <path
-                    d="M3 3h12a1.5 1.5 0 011.5 1.5v9A1.5 1.5 0 0115 15H3a1.5 1.5 0 01-1.5-1.5v-9A1.5 1.5 0 013 3z"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M16.5 4.5L9 10.5 1.5 4.5"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-              <span className="text-stone-300">nigel.nds.smith@gmail.com</span>
-            </div>
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10">
                 <svg
@@ -142,7 +154,7 @@ export default function Contact() {
           transition={{ duration: 0.7, delay: 0.2 }}
           className="flex items-center"
         >
-          {submitted ? (
+          {status === "success" ? (
             <div className="w-full rounded-2xl bg-white/5 p-10 text-center">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent/20">
                 <svg
@@ -189,21 +201,37 @@ export default function Contact() {
                   placeholder="Your name"
                 />
               </div>
-              <div>
-                <label
-                  htmlFor="email"
-                  className="mb-2 block text-sm font-medium text-stone-300"
-                >
-                  Email
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  required
-                  className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-stone-500 outline-none transition-colors focus:border-accent"
-                  placeholder="your@email.com"
-                />
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="mb-2 block text-sm font-medium text-stone-300"
+                  >
+                    Email <span className="text-stone-500">(or phone)</span>
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-stone-500 outline-none transition-colors focus:border-accent"
+                    placeholder="your@email.com"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="phone"
+                    className="mb-2 block text-sm font-medium text-stone-300"
+                  >
+                    Phone <span className="text-stone-500">(or email)</span>
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-stone-500 outline-none transition-colors focus:border-accent"
+                    placeholder="+1 (555) 000-0000"
+                  />
+                </div>
               </div>
               <div>
                 <label
@@ -247,11 +275,17 @@ export default function Contact() {
                   placeholder="Tell me about your project..."
                 />
               </div>
+              {status === "error" && errorMsg && (
+                <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                  {errorMsg}
+                </p>
+              )}
               <button
                 type="submit"
-                className="w-full rounded-full bg-accent py-4 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
+                disabled={status === "loading"}
+                className="w-full rounded-full bg-accent py-4 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Send Message
+                {status === "loading" ? "Sending…" : "Send Message"}
               </button>
             </form>
           )}
