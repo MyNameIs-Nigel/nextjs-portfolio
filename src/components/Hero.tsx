@@ -1,31 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 
-const HERO_IMAGES = [
-  "/hero/hero1.jpg",
-  "/hero/hero2.jpg",
-  "/hero/hero3.jpg",
-  "/hero/hero4.jpg",
-] as const;
-const SESSION_KEY = "heroImage";
-
-export default function Hero() {
-  const [src, setSrc] = useState<string>(HERO_IMAGES[0]);
-
-  useEffect(() => {
-    const stored = sessionStorage.getItem(SESSION_KEY);
-    const pick =
-      stored && (HERO_IMAGES as readonly string[]).includes(stored)
-        ? stored
-        : HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)];
-    if (!stored) sessionStorage.setItem(SESSION_KEY, pick);
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing with sessionStorage post-mount to avoid SSR/CSR hydration mismatch
-    setSrc(pick);
-  }, []);
-
+export default function Hero({ src }: { src: string }) {
   return (
     <section className="relative flex h-screen w-full items-end overflow-hidden">
       <Image
