@@ -9,6 +9,12 @@ import { MAX_PHOTO_BYTES, formatPhotoDate, type Photo } from "@/lib/photo-schema
 const fieldClass = "mt-2 w-full rounded-lg border border-border bg-white px-4 py-3 text-base outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15 disabled:opacity-60";
 const buttonClass = "rounded-full bg-accent px-6 py-3 text-sm font-medium text-white transition hover:bg-accent-hover disabled:cursor-wait disabled:opacity-50";
 
+// The date input shows a local calendar day; toISOString would give the UTC day.
+const localToday = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+};
+
 async function api(path: string, body?: unknown, method = "POST") {
   const response = await fetch(path, { method, headers: { "Content-Type": "application/json" }, ...(body ? { body: JSON.stringify(body) } : {}) });
   const result = await response.json();
@@ -139,7 +145,7 @@ export function PhotoUploader({ photos, missingSettings, loadFailed }: { photos:
           setFile(selected); setFileName(selected?.name ?? ""); setError(""); setSuccess("");
         }} /><p className="mt-2 text-xs leading-relaxed text-muted">JPEG, PNG, or WebP, up to 40 MB. A web-sized copy is prepared automatically; your original stays with you. Location metadata is removed.</p>{fileName && <p className="mt-2 break-all text-sm text-accent">Selected: {fileName}</p>}</div>
         <label className="text-sm font-medium">Title<input name="title" required maxLength={160} placeholder="Morning on the back roads" className={fieldClass} /></label>
-        <label className="text-sm font-medium">Date photographed<input name="date" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} className={fieldClass} /></label>
+        <label className="text-sm font-medium">Date photographed<input name="date" type="date" required defaultValue={localToday()} className={fieldClass} /></label>
         <label className="text-sm font-medium sm:col-span-2">Image description<input name="alt" required maxLength={500} placeholder="Describe what is in the photograph" className={fieldClass} /><span className="mt-2 block text-xs font-normal leading-relaxed text-muted">Used by screen readers and search engines. Be descriptive rather than repeating the title.</span></label>
         <label className="text-sm font-medium sm:col-span-2">Caption <span className="font-normal text-muted">(optional)</span><textarea name="caption" maxLength={3000} rows={4} placeholder="A few words about this moment…" className={`${fieldClass} resize-y`} /></label>
       </fieldset>
