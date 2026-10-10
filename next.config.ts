@@ -8,12 +8,20 @@ const nextConfig: NextConfig = {
     '/': ['./public/hero/**'],
   },
   images: {
+    // Only the local integration fixture needs the optimizer to reach loopback.
+    dangerouslyAllowLocalIP: process.env.NODE_ENV === "development" && !!process.env.R2_LOCAL_ENDPOINT,
     remotePatterns: [
+      ...(process.env.R2_PUBLIC_URL ? [new URL(`${process.env.R2_PUBLIC_URL.replace(/\/$/, "")}/photos/images/**`)] : []),
       {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
     ],
+  },
+  async headers() {
+    return [
+      { source: "/admin/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }, { key: "Cache-Control", value: "private, no-store" }] },
+    ];
   },
 };
 

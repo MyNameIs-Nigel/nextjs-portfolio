@@ -33,11 +33,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${post.title} — Nigel Smith`,
     description: post.excerpt,
+    alternates: { canonical: `/blog/${post.slug}` },
+    twitter: { card: "summary_large_image", title: post.title, description: post.excerpt, images: post.coverImage ? [post.coverImage] : [] },
     openGraph: {
       title: post.title,
       description: post.excerpt,
       images: post.coverImage ? [{ url: post.coverImage }] : [],
       type: "article",
+      url: `/blog/${post.slug}`,
+      publishedTime: post.date,
+      modifiedTime: post.modified ?? post.date,
     },
   };
 }
@@ -64,7 +69,7 @@ export default async function BlogPostPage({ params }: Props) {
     <>
       <ReadingProgress />
       <Navbar />
-      <main className="min-h-screen bg-background">
+      <main id="main-content" className="min-h-screen bg-background">
         {/* Post header */}
         <div className="bg-foreground px-6 pt-32 pb-12 lg:px-12 lg:pt-40 lg:pb-16">
           <div className="mx-auto max-w-3xl">
