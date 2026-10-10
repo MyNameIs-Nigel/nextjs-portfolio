@@ -23,8 +23,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const photo = await findPhoto((await params).id);
   if (!photo) return { title: "Photo Journal — Nigel Smith" };
   const title = `${photo.title} — Nigel Smith`;
-  const description = photo.caption || photo.alt;
-  const images = [{ url: photoImageUrl(photo), width: photo.width, height: photo.height, alt: photo.alt }];
+  const description = photo.caption || photo.alt || photo.title;
+  const images = [{ url: photoImageUrl(photo), width: photo.width, height: photo.height, alt: photo.alt || photo.title }];
   return {
     title, description, alternates: { canonical: `/photos/${photo.id}` },
     openGraph: { title, description, url: `/photos/${photo.id}`, type: "article", publishedTime: photo.publishedAt, modifiedTime: photo.updatedAt, images },
@@ -52,8 +52,8 @@ export default async function PhotoPage({ params }: Props) {
       <PhotoFigure photo={photo} priority detail />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd({
         "@context": "https://schema.org", "@type": "ImageObject", "@id": absoluteUrl(`/photos/${photo.id}`),
-        url: absoluteUrl(`/photos/${photo.id}`), contentUrl: photoImageUrl(photo), name: photo.title, description: photo.alt,
-        caption: photo.caption || undefined, dateCreated: photo.date, datePublished: photo.publishedAt, dateModified: photo.updatedAt,
+        url: absoluteUrl(`/photos/${photo.id}`), contentUrl: photoImageUrl(photo), name: photo.title, description: photo.alt || photo.title,
+        caption: photo.caption || undefined, dateCreated: photo.date && !photo.dateApproximate ? photo.date : undefined, datePublished: photo.publishedAt, dateModified: photo.updatedAt,
         width: photo.width, height: photo.height,
         creator: { "@type": "Person", name: "Nigel Smith", url: absoluteUrl("/") }, creditText: "Nigel Smith", copyrightNotice: "© Nigel Smith",
       }) }} />

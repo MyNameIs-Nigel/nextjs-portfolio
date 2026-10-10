@@ -81,6 +81,31 @@ try {
   assert.equal((await fetch(`${origin}/photos/${upload.id}`)).status, 404);
   assert.doesNotMatch(await (await fetch(`${origin}/sitemap.xml`)).text(), new RegExp(upload.id));
 
+  // Film and undated photos publish without inventing a day or requiring EXIF.
+  for (const [date, dateApproximate, label] of [["", false, ""], ["1998", false, "approx. 1998"], ["1998-06", false, "approx. June 1998"], ["1998-06-12", true, "approx. June 12, 1998"]]) {
+    const film = { title: "Film archive", width: 1600, height: 1067, date, dateApproximate, exif: { camera: "Nikon F3", shutterSpeed: "1/125 s", aperture: "f/2.8", iso: "400", GPSLatitude: "secret-coordinate" } };
+    const response = await api("/api/photos", { action: "prepare", contentType: "image/jpeg", ...film }, { cookie });
+    assert.equal(response.status, 200);
+    const signed = await response.json();
+    assert.equal((await fetch(signed.url, { method: "PUT", headers: { "Content-Type": "image/jpeg" }, body: image })).status, 200);
+    const publication = await api("/api/photos", { action: "publish", id: signed.id, imageKey: signed.imageKey, ...film }, { cookie });
+    assert.equal(publication.status, 201);
+    const { photo } = await publication.json();
+    assert.equal(photo.date, date);
+    assert.equal(photo.alt, "");
+    assert.equal(photo.exif.GPSLatitude, undefined);
+    const html = await (await fetch(`${origin}/photos/${signed.id}`)).text();
+    assert.match(html, /alt="Film archive"/);
+    assert.match(html, /Nikon F3/);
+    assert.match(html, /1\/125 s/);
+    assert.match(html, /ISO 400/);
+    assert.doesNotMatch(html, /secret-coordinate/);
+    assert.doesNotMatch(html, /"dateCreated":/);
+    if (label) assert.ok(html.includes(label), label);
+    else assert.doesNotMatch(html, /approx\./);
+    assert.equal((await api("/api/photos", { id: signed.id }, { method: "DELETE", cookie })).status, 200);
+  }
+
   const blog = await fetch(`${origin}/blog`);
   assert.equal(blog.status, 200);
   assert.doesNotMatch(await blog.text(), /name="robots" content="noindex/);
@@ -96,7 +121,7 @@ try {
   assert.match(await (await fetch(`${origin}/photos`)).text(), /Morning fog/);
   const logout = await api("/api/photos/session", {}, { method: "DELETE", cookie });
   assert.match(logout.headers.get("set-cookie"), /Max-Age=0/);
-  console.log("Integration checks passed: auth/CSRF, paginated R2 reads, signed direct upload, publishing, metadata, sitemap refresh, removal, outage recovery, retained blog, and logout.");
+  console.log("Integration checks passed: auth/CSRF, paginated R2 reads, signed upload, publishing, optional metadata, approximate film dates, public EXIF, sitemap refresh, removal, outage recovery, retained blog, and logout.");
   if (process.env.KEEP_PHOTO_PREVIEW === "1") {
     console.log(`Fixture preview: ${origin}/photos (test data only)`);
     await new Promise((resolve) => process.once("SIGTERM", resolve));

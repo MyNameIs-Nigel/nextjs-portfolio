@@ -68,10 +68,29 @@ the signed URL still authorizes the write. Never use `*` for uploader origins.
 
 1. Visit `https://YOUR_SITE/admin/photos` and sign in.
 2. Choose a JPEG, PNG, or WebP image under 40 MB. Export RAW/HEIC first.
-3. Add a title, the date photographed, a descriptive alt text, and an optional caption.
+3. Embedded EXIF/IPTC/XMP metadata fills in the title, caption, capture date, and
+   available camera details (camera, lens, shutter speed, aperture, ISO, focal
+   length). Review, correct, or clear them before publishing. Only the title is
+   required; the image description, caption, date, and camera details are optional.
 4. Publish. The browser resizes to a maximum edge of 2560 pixels and creates a
    WebP copy at 88% quality, removing EXIF/GPS metadata. It never enlarges an image.
-5. Open the journal. Entries sort by the date photographed, newest first.
+5. Open the journal. Entries sort by the date photographed, newest first. Undated
+   photos use their publication date for sorting, without displaying a capture date.
+
+For film or uncertain dates, choose **Year**, **Year and month**, or **Full date**.
+Year-only and month-only dates always display `approx.` (for example, `approx.
+1998` or `approx. June 1998`). Full dates can also be marked approximate. Leave
+the date unknown if it is not known; missing metadata never defaults to today or
+the file's modification/export/digitization date. Partial dates retain their
+precision in storage, and approximate dates are omitted from exact capture-date
+structured data. Existing dated records remain compatible.
+
+Metadata is read locally from the original JPEG, PNG, or WebP before the web copy
+is generated. Files exported without metadata leave those fields blank; malformed
+metadata does not prevent manual publishing. Sidecar files are not imported. The
+public record retains only the selected fields above, never GPS coordinates or
+camera serial numbers. The web image itself still has embedded metadata removed.
+If an image description is left blank, the title supplies its accessible alt text.
 
 Keep your full-resolution originals separately. Uploads go directly to R2 using
 a five-minute signed URL, bypassing Vercel's function request-body limit. The
