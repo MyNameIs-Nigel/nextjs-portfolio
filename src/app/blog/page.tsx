@@ -3,11 +3,15 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BlogIndex from "@/components/BlogIndex";
 import { getAllPosts } from "@/lib/blog";
+import { absoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Blog — Nigel Smith",
   description:
     "Thoughts on photography, automotive work, coding projects, and classwork from Nigel Smith.",
+  alternates: { canonical: "/blog" },
+  openGraph: { title: "Blog — Nigel Smith", description: "Notes on photography, cars, code, and the things I’m learning.", url: "/blog", type: "website" },
+  twitter: { card: "summary_large_image", title: "Blog — Nigel Smith", description: "Notes on photography, cars, code, and the things I’m learning.", images: [absoluteUrl("/opengraph-image.jpg")] },
 };
 
 export default function BlogPage() {
@@ -16,7 +20,7 @@ export default function BlogPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-background">
+      <main id="main-content" className="min-h-screen bg-background">
         {/* Page hero */}
         <div className="bg-foreground px-6 pt-32 pb-20 lg:px-12 lg:pt-40 lg:pb-28">
           <div className="mx-auto max-w-7xl">

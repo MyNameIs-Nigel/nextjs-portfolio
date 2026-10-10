@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 const navLinks = [
   { label: "Work", href: "/#work" },
   { label: "About", href: "/#about" },
-  { label: "Blog", href: "/blog" },
+  { label: "Photos", href: "/photos" },
 ];
 
 export default function Navbar() {
@@ -63,6 +63,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
+                aria-current={pathname === link.href ? "page" : undefined}
                 className={`text-sm font-medium tracking-wide uppercase transition-colors hover:text-accent ${
                   showSolid ? "text-foreground" : "text-white"
                 }`}
@@ -83,6 +84,8 @@ export default function Navbar() {
             onClick={() => setMobileOpen(!mobileOpen)}
             className="relative z-50 flex h-8 w-8 flex-col items-center justify-center gap-1.5 md:hidden"
             aria-label="Toggle menu"
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-navigation"
           >
             <span
               className={`h-0.5 w-6 transition-all duration-300 ${
@@ -119,6 +122,7 @@ export default function Navbar() {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
+            id="mobile-navigation"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -134,6 +138,7 @@ export default function Navbar() {
               >
                 <Link
                   href={link.href}
+                  aria-current={pathname === link.href ? "page" : undefined}
                   onClick={() => setMobileOpen(false)}
                   className="font-[family-name:var(--font-playfair)] text-3xl font-bold text-foreground"
                 >

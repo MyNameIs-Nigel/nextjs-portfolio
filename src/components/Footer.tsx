@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 export default function Footer() {
   return (
     <footer className="border-t border-white/10 bg-foreground px-6 py-8 lg:px-12">
@@ -7,17 +9,17 @@ export default function Footer() {
         <p className="text-sm text-stone-500">
           &copy; {new Date().getFullYear()} Nigel Smith. All rights reserved.
         </p>
-        <div className="flex gap-6">
-          {["Instagram", "Vimeo", "Behance"].map((social) => (
-            <a
-              key={social}
-              href="#"
+        <nav aria-label="Footer" className="flex gap-6">
+          {[{ label: "Selected work", href: "/#work" }, { label: "Photo journal", href: "/photos" }, { label: "Contact", href: "/#contact" }].map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
               className="text-sm text-stone-500 transition-colors hover:text-accent"
             >
-              {social}
-            </a>
+              {link.label}
+            </Link>
           ))}
-        </div>
+        </nav>
       </div>
     </footer>
   );

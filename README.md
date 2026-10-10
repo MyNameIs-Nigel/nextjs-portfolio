@@ -10,6 +10,17 @@ A single-page photography portfolio built from scratch with Next.js, React, Type
 
 ## Updating the Site
 
+### Photo journal
+
+The photo journal lives at `/photos`; the private uploader is at `/admin/photos`.
+Photos, captions, dates, and image descriptions are stored in Cloudflare R2 and
+can be published without a new site deployment. See [the setup guide](docs/PHOTO-JOURNAL.md)
+for the bucket, environment variables, public domain, and CORS configuration.
+
+The blog is retained at `/blog` but excluded from navigation and the generated
+sitemap. `/sitemap.xml` automatically includes public static pages and published
+photo pages; `/robots.txt` points search engines to it.
+
 This project is connected to Vercel via GitHub. To update the live site:
 
 ```bash

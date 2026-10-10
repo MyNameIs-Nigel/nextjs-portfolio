@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
+import { absoluteUrl, jsonLd, siteDescription, siteUrl } from "@/lib/site";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -16,15 +17,20 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "Nigel Smith — Photographer",
-  description:
-    "Portfolio of Nigel Smith — photographer and videographer crafting bold visual narratives for the creative industry.",
+  description: siteDescription,
+  authors: [{ name: "Nigel Smith", url: siteUrl }],
+  creator: "Nigel Smith",
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large" } },
   openGraph: {
-    title: "Nigel Smith — Visual Storyteller",
-    description:
-      "Photographer crafting bold visual narratives.",
+    title: "Nigel Smith — Photographer",
+    description: siteDescription,
+    siteName: "Nigel Smith Photography",
+    locale: "en_US",
     type: "website",
   },
+  twitter: { card: "summary_large_image", title: "Nigel Smith — Photographer", description: siteDescription, images: [absoluteUrl("/opengraph-image.jpg")] },
 };
 
 export default function RootLayout({
@@ -34,7 +40,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
-      <body className="antialiased">{children}
+      <body className="antialiased">
+        <a href="#main-content" className="sr-only fixed left-4 top-4 z-[200] rounded-lg bg-white px-5 py-3 text-foreground shadow-lg focus:not-sr-only">Skip to content</a>
+        {children}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd({
+          "@context": "https://schema.org", "@type": "Person", "@id": absoluteUrl("/#nigel-smith"),
+          name: "Nigel Smith", url: siteUrl, image: absoluteUrl("/profile.jpg"), jobTitle: "Photographer",
+          homeLocation: { "@type": "Place", name: "Monroe, Georgia" },
+        }) }} />
         <Analytics />
       </body>
     </html>
