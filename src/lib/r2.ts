@@ -74,7 +74,7 @@ export async function readPhotos(): Promise<Photo[]> {
   return sortPhotos(photos);
 }
 
-export const getPhotos = unstable_cache(readPhotos, ["r2-photo-journal-v1", process.env.R2_BUCKET_NAME ?? "unconfigured", process.env.R2_PUBLIC_URL ?? "unconfigured"], { revalidate: 300, tags: ["photos"] });
+export const getPhotos = unstable_cache(readPhotos, ["r2-photo-journal-v2-metadata", process.env.R2_BUCKET_NAME ?? "unconfigured", process.env.R2_PUBLIC_URL ?? "unconfigured"], { revalidate: 300, tags: ["photos"] });
 
 export const getPhotoStream = cache(async () => {
   try {
