@@ -39,7 +39,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
+    // globals.css sets `scroll-behavior: smooth` for in-page anchors. Next 16 no longer
+    // disables it during route changes unless this attribute is present, which otherwise
+    // leaves new pages scrolled to the bottom.
+    <html lang="en" data-scroll-behavior="smooth" className={`${inter.variable} ${playfair.variable}`}>
       <body className="antialiased">
         <a href="#main-content" className="sr-only fixed left-4 top-4 z-[200] rounded-lg bg-white px-5 py-3 text-foreground shadow-lg focus:not-sr-only">Skip to content</a>
         {children}
