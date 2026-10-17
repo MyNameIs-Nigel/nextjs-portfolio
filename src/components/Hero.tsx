@@ -10,9 +10,9 @@ export default function Hero({ src }: { src: string }) {
         src={src}
         alt=""
         fill
-        priority
+        preload
         sizes="100vw"
-        className="absolute inset-0 h-full w-full object-cover"
+        className="object-cover"
       />
 
       {/* Dark overlay gradient */}
@@ -32,7 +32,7 @@ export default function Hero({ src }: { src: string }) {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.5 }}
-          className="font-[family-name:var(--font-playfair)] text-5xl font-bold leading-tight text-white sm:text-6xl lg:text-8xl"
+          className="font-display text-5xl font-bold leading-tight text-white sm:text-6xl lg:text-8xl"
         >
           Visual
           <br />

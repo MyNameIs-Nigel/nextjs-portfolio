@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
-import { absoluteUrl, jsonLd, siteDescription, siteUrl } from "@/lib/site";
+import { absoluteUrl, jsonLd, siteDescription, siteOpenGraph, siteTitle, siteUrl } from "@/lib/site";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -18,19 +18,13 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Nigel Smith — Photographer",
+  title: siteTitle,
   description: siteDescription,
   authors: [{ name: "Nigel Smith", url: siteUrl }],
   creator: "Nigel Smith",
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large" } },
-  openGraph: {
-    title: "Nigel Smith — Photographer",
-    description: siteDescription,
-    siteName: "Nigel Smith Photography",
-    locale: "en_US",
-    type: "website",
-  },
-  twitter: { card: "summary_large_image", title: "Nigel Smith — Photographer", description: siteDescription, images: [absoluteUrl("/opengraph-image.jpg")] },
+  openGraph: siteOpenGraph,
+  twitter: { card: "summary_large_image", title: siteTitle, description: siteDescription, images: [absoluteUrl("/opengraph-image.jpg")] },
 };
 
 export default function RootLayout({

@@ -8,17 +8,14 @@ import Footer from "@/components/Footer";
 import ReadingProgress from "@/components/ReadingProgress";
 import { mdxComponents } from "@/components/MdxComponents";
 import { getAllPosts, getPostBySlug } from "@/lib/blog";
-
-const CATEGORY_COLORS = {
-  Automotive: "bg-amber-100 text-amber-800",
-  Classwork: "bg-blue-100 text-blue-800",
-  "Coding Projects": "bg-emerald-100 text-emerald-800",
-  Photography: "bg-rose-100 text-rose-800",
-} as const;
+import { CATEGORY_COLORS, formatPostDate } from "@/lib/blog-types";
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
+
+// Every post is generated at build time; any other slug is a static 404.
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
   const posts = getAllPosts();
@@ -47,12 +44,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+function BackArrow() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+      <path
+        d="M11.5 7h-9m0 0L6 3.5M2.5 7L6 10.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
 export default async function BlogPostPage({ params }: Props) {
@@ -60,10 +63,6 @@ export default async function BlogPostPage({ params }: Props) {
   const post = getPostBySlug(slug);
 
   if (!post) notFound();
-
-  const categoryColor =
-    CATEGORY_COLORS[post.category as keyof typeof CATEGORY_COLORS] ??
-    "bg-stone-100 text-stone-700";
 
   return (
     <>
@@ -77,41 +76,27 @@ export default async function BlogPostPage({ params }: Props) {
               href="/blog"
               className="mb-8 inline-flex items-center gap-2 text-sm text-white/50 transition-colors hover:text-white"
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 14 14"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M11.5 7h-9m0 0L6 3.5M2.5 7L6 10.5"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <BackArrow />
               All posts
             </Link>
 
             <div className="mb-5 flex flex-wrap items-center gap-3">
               <span
-                className={`rounded-full px-3 py-1 text-xs font-semibold ${categoryColor}`}
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${CATEGORY_COLORS[post.category]}`}
               >
                 {post.category}
               </span>
               <span className="text-sm text-white/40">
-                {formatDate(post.date)} · {post.readingTime}
+                <time dateTime={post.date}>{formatPostDate(post.date)}</time> · {post.readingTime}
               </span>
               {post.modified && (
                 <span className="text-sm text-white/35 italic">
-                  Last updated: {formatDate(post.modified)}
+                  Last updated: <time dateTime={post.modified}>{formatPostDate(post.modified)}</time>
                 </span>
               )}
             </div>
 
-            <h1 className="font-[family-name:var(--font-playfair)] text-4xl font-bold leading-tight text-white sm:text-5xl lg:text-6xl">
+            <h1 className="font-display text-4xl font-bold leading-tight text-white sm:text-5xl lg:text-6xl">
               {post.title}
             </h1>
 
@@ -128,7 +113,7 @@ export default async function BlogPostPage({ params }: Props) {
               src={post.coverImage}
               alt={post.title}
               fill
-              priority
+              preload
               sizes="(max-width: 1024px) 100vw, 1024px"
               className="object-cover"
             />
@@ -147,21 +132,7 @@ export default async function BlogPostPage({ params }: Props) {
               href="/blog"
               className="inline-flex items-center gap-2 text-sm font-medium text-accent transition-colors hover:text-accent-hover"
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 14 14"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M11.5 7h-9m0 0L6 3.5M2.5 7L6 10.5"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <BackArrow />
               Back to all posts
             </Link>
           </div>

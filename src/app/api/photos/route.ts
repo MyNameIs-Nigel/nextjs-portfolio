@@ -1,7 +1,8 @@
 import { revalidatePath, revalidateTag } from "next/cache";
-import { isPhotoAdmin, privateJson, readJson, sameOrigin } from "@/lib/photo-auth";
+import { isPhotoAdmin } from "@/lib/photo-auth";
+import { privateJson, readJson, sameOrigin } from "@/lib/http";
 import { prepareUpload, publishPhoto, deletePhoto, missingR2Settings } from "@/lib/r2";
-import { parsePhotoFields } from "@/lib/photo-schema";
+import { isPhotoType, parsePhotoFields } from "@/lib/photo-schema";
 
 export const runtime = "nodejs";
 
@@ -18,19 +19,15 @@ export async function POST(request: Request) {
   let input: Record<string, unknown>;
   try {
     input = await readJson(request);
-    if (input.action === "prepare") {
-      parsePhotoFields(input);
-      if (typeof input.contentType !== "string" || !["image/webp", "image/jpeg", "image/png"].includes(input.contentType)) throw new Error("Unsupported image format.");
-    } else if (input.action !== "publish") {
-      throw new Error("Unknown upload action.");
-    } else {
-      parsePhotoFields(input);
-    }
+    if (input.action !== "prepare" && input.action !== "publish") throw new Error("Unknown upload action.");
+    // Validate the details before signing an upload, so a bad form never leaves an orphaned image.
+    parsePhotoFields(input);
+    if (input.action === "prepare" && !isPhotoType(input.contentType)) throw new Error("Unsupported image format.");
   } catch (error) {
     return privateJson({ error: error instanceof Error ? error.message : "Invalid photo details." }, 400);
   }
   try {
-    if (input.action === "prepare") return privateJson(await prepareUpload(input.contentType as string));
+    if (input.action === "prepare") return privateJson(await prepareUpload(input.contentType));
     const photo = await publishPhoto(input);
     refreshPhotos();
     return privateJson({ photo }, 201);

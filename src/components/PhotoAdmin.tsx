@@ -4,11 +4,14 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { CAMERA_FIELDS, MAX_PHOTO_BYTES, formatPhotoDate, validDate, type Photo, type CameraDetails } from "@/lib/photo-schema";
+import { CAMERA_FIELDS, MAX_PHOTO_BYTES, MAX_PHOTO_EDGE, MAX_SOURCE_BYTES, PHOTO_TYPES, formatPhotoDate, isPhotoType, validDate, type Photo, type CameraDetails } from "@/lib/photo-schema";
 import { emptyPhotoMetadata, readPhotoMetadata } from "@/lib/photo-metadata";
 
 const fieldClass = "mt-2 w-full rounded-lg border border-border bg-white px-4 py-3 text-base outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15 disabled:opacity-60";
 const buttonClass = "rounded-full bg-accent px-6 py-3 text-sm font-medium text-white transition hover:bg-accent-hover disabled:cursor-wait disabled:opacity-50";
+const ACCEPTED_TYPES = Object.keys(PHOTO_TYPES).join(",");
+const DATE_LENGTHS: Record<string, number> = { year: 4, month: 7, day: 10 };
+const datePrecisionOf = (date: string) => Object.keys(DATE_LENGTHS).find((precision) => DATE_LENGTHS[precision] === date.length) ?? "unknown";
 
 async function api(path: string, body?: unknown, method = "POST") {
   const response = await fetch(path, { method, headers: { "Content-Type": "application/json" }, ...(body ? { body: JSON.stringify(body) } : {}) });
@@ -18,11 +21,11 @@ async function api(path: string, body?: unknown, method = "POST") {
 }
 
 async function prepareImage(file: File) {
-  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) throw new Error("Choose a JPEG, PNG, or WebP image. Export HEIC or RAW files first.");
-  if (file.size > 40 * 1024 * 1024) throw new Error("Choose an image under 40 MB.");
+  if (!isPhotoType(file.type)) throw new Error("Choose a JPEG, PNG, or WebP image. Export HEIC or RAW files first.");
+  if (file.size > MAX_SOURCE_BYTES) throw new Error("Choose an image under 40 MB.");
   const bitmap = await createImageBitmap(file);
   try {
-    const scale = Math.min(1, 2560 / Math.max(bitmap.width, bitmap.height));
+    const scale = Math.min(1, MAX_PHOTO_EDGE / Math.max(bitmap.width, bitmap.height));
     const width = Math.max(1, Math.round(bitmap.width * scale));
     const height = Math.max(1, Math.round(bitmap.height * scale));
     const canvas = document.createElement("canvas");
@@ -58,7 +61,7 @@ export function PhotoLogin() {
   }
   return <form onSubmit={login} className="mx-auto max-w-md rounded-2xl border border-border bg-white p-8 sm:p-10">
     <p className="text-xs uppercase tracking-[0.2em] text-accent">For your eyes only</p>
-    <h1 className="mt-3 font-[family-name:var(--font-playfair)] text-4xl">Your photo journal.</h1>
+    <h1 className="mt-3 font-display text-4xl">Your photo journal.</h1>
     <p className="mt-4 leading-relaxed text-muted">Sign in to share a new photograph.</p>
     <label className="mt-8 block text-sm font-medium" htmlFor="password">Owner password</label>
     <input id="password" name="password" type="password" autoComplete="current-password" required maxLength={1024} disabled={busy} className={fieldClass} />
@@ -85,18 +88,22 @@ export function PhotoUploader({ photos, missingSettings, loadFailed }: { photos:
   const busy = !!progress || readingMetadata;
   const blocked = missingSettings.length > 0;
 
+  function resetDraft() {
+    setDraft(emptyPhotoMetadata()); setDatePrecision("unknown"); setDateApproximate(false); setMetadataStatus("");
+  }
+
   async function selectPhoto(selected: File | null) {
     setFile(selected); setFileName(selected?.name ?? ""); setError(""); setSuccess("");
-    setDraft(emptyPhotoMetadata()); setDatePrecision("unknown"); setDateApproximate(false); setMetadataStatus("");
+    resetDraft();
     if (!selected) return;
-    if (!["image/jpeg", "image/png", "image/webp"].includes(selected.type) || selected.size > 40 * 1024 * 1024) {
+    if (!isPhotoType(selected.type) || selected.size > MAX_SOURCE_BYTES) {
       setError("Choose a JPEG, PNG, or WebP image under 40 MB."); setFile(null); return;
     }
     setReadingMetadata(true);
     try {
       const metadata = await readPhotoMetadata(selected);
       setDraft(metadata);
-      setDatePrecision(metadata.date ? metadata.date.length === 4 ? "year" : metadata.date.length === 7 ? "month" : "day" : "unknown");
+      setDatePrecision(datePrecisionOf(metadata.date));
       setDateApproximate(!!metadata.date && metadata.date.length < 10);
       setMetadataStatus(Object.values(metadata).some((value) => typeof value === "string" ? !!value : Object.keys(value).length > 0) ? "Available metadata filled in. Review it before publishing; anything can be changed or cleared." : "No supported metadata found. Add a title; everything else is optional.");
     } catch {
@@ -124,7 +131,7 @@ export function PhotoUploader({ photos, missingSettings, loadFailed }: { photos:
       form.reset();
       setFile(null);
       setFileName("");
-      setDraft(emptyPhotoMetadata()); setDatePrecision("unknown"); setDateApproximate(false); setMetadataStatus("");
+      resetDraft();
       setSuccess("Your photo is published.");
       router.refresh();
     } catch (error) {
@@ -147,7 +154,7 @@ export function PhotoUploader({ photos, missingSettings, loadFailed }: { photos:
 
   return <div>
     <header className="mb-10 flex flex-wrap items-end justify-between gap-5">
-      <div><p className="text-xs uppercase tracking-[0.2em] text-accent">Behind the lens</p><h1 className="mt-3 font-[family-name:var(--font-playfair)] text-4xl sm:text-5xl">Your photo journal.</h1><p className="mt-4 text-muted">A place for the next photograph.</p></div>
+      <div><p className="text-xs uppercase tracking-[0.2em] text-accent">Behind the lens</p><h1 className="mt-3 font-display text-4xl sm:text-5xl">Your photo journal.</h1><p className="mt-4 text-muted">A place for the next photograph.</p></div>
       <button className="text-sm text-muted underline underline-offset-4 disabled:opacity-50" disabled={busy || signingOut || !!removing} onClick={async () => {
         setSigningOut(true);
         try { await api("/api/photos/session", undefined, "DELETE"); router.refresh(); }
@@ -157,16 +164,16 @@ export function PhotoUploader({ photos, missingSettings, loadFailed }: { photos:
     </header>
     {blocked && <div className="mb-8 rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm leading-relaxed text-amber-950"><h2 className="font-semibold">Connect your R2 bucket to start publishing</h2><p className="mt-2">Add these environment variables in Vercel, then redeploy:</p><ul className="mt-3 list-inside list-disc font-mono text-xs">{missingSettings.map((key) => <li key={key}>{key}</li>)}</ul><p className="mt-3">The repository’s docs/PHOTO-JOURNAL.md walks through the bucket, public domain, and CORS setup.</p></div>}
     <form onSubmit={publish} className="rounded-2xl border border-border bg-white p-6 sm:p-8">
-      <h2 className="font-[family-name:var(--font-playfair)] text-2xl">Share a photograph</h2>
+      <h2 className="font-display text-2xl">Share a photograph</h2>
       <fieldset disabled={busy || blocked} className="mt-6 grid gap-6 sm:grid-cols-2">
-        <div className="sm:col-span-2"><label htmlFor="photo-file" className="block text-sm font-medium">Photograph</label><input id="photo-file" name="photo" type="file" accept="image/jpeg,image/png,image/webp" required className={`${fieldClass} file:mr-4 file:rounded-full file:border-0 file:bg-stone-100 file:px-4 file:py-2 file:text-sm`} onChange={(event) => {
+        <div className="sm:col-span-2"><label htmlFor="photo-file" className="block text-sm font-medium">Photograph</label><input id="photo-file" name="photo" type="file" accept={ACCEPTED_TYPES} required className={`${fieldClass} file:mr-4 file:rounded-full file:border-0 file:bg-stone-100 file:px-4 file:py-2 file:text-sm`} onChange={(event) => {
           void selectPhoto(event.target.files?.[0] ?? null);
         }} /><p className="mt-2 text-xs leading-relaxed text-muted">JPEG, PNG, or WebP, up to 40 MB. A web-sized copy is prepared automatically; your original stays with you. Location metadata is removed.</p>{fileName && <p className="mt-2 break-all text-sm text-accent">Selected: {fileName}</p>}</div>
         <p role="status" className="text-sm text-muted sm:col-span-2">{readingMetadata ? "Reading photo metadata…" : metadataStatus || "Only a title is required. Embedded titles, captions, capture dates, and camera details fill in when available."}</p>
         <label className="text-sm font-medium sm:col-span-2">Title <span className="font-normal text-muted">(required)</span><input name="title" required maxLength={160} value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} placeholder="Morning on the back roads" className={fieldClass} /></label>
         <label className="text-sm font-medium">Date precision <span className="font-normal text-muted">(optional)</span><select name="datePrecision" value={datePrecision} onChange={(event) => {
           const precision = event.target.value;
-          const length = precision === "year" ? 4 : precision === "month" ? 7 : precision === "day" ? 10 : 0;
+          const length = DATE_LENGTHS[precision] ?? 0;
           setDatePrecision(precision);
           setDraft({ ...draft, date: length && draft.date.length >= length ? draft.date.slice(0, length) : "" });
           setDateApproximate(precision === "year" || precision === "month");
@@ -175,12 +182,12 @@ export function PhotoUploader({ photos, missingSettings, loadFailed }: { photos:
         {datePrecision !== "unknown" && <div className="sm:col-span-2"><label className="flex items-center gap-3 text-sm"><input name="dateApproximate" type="checkbox" checked={datePrecision !== "day" || dateApproximate} disabled={datePrecision !== "day"} onChange={(event) => setDateApproximate(event.target.checked)} className="accent-accent" />Approximate date</label><p className="mt-2 text-xs text-muted">Year-only and month-only dates always show “approx.”{validDate(draft.date) && ` Preview: ${formatPhotoDate(draft.date, dateApproximate)}`}</p></div>}
         <label className="text-sm font-medium sm:col-span-2">Image description <span className="font-normal text-muted">(optional)</span><input name="alt" maxLength={500} value={draft.alt} onChange={(event) => setDraft({ ...draft, alt: event.target.value })} placeholder="Describe what is in the photograph" className={fieldClass} /><span className="mt-2 block text-xs font-normal leading-relaxed text-muted">Used by screen readers and search engines. If left blank, the title is used.</span></label>
         <label className="text-sm font-medium sm:col-span-2">Caption <span className="font-normal text-muted">(optional)</span><textarea name="caption" maxLength={3000} rows={4} value={draft.caption} onChange={(event) => setDraft({ ...draft, caption: event.target.value })} placeholder="A few words about this moment…" className={`${fieldClass} resize-y`} /></label>
-        <div className="sm:col-span-2"><h3 className="font-[family-name:var(--font-playfair)] text-xl">Camera details <span className="font-sans text-sm font-normal text-muted">(optional)</span></h3><p className="mt-2 text-xs leading-relaxed text-muted">Read from the original photograph when available. Add, correct, or clear any field, including for film.</p><div className="mt-4 grid gap-4 sm:grid-cols-2">{(Object.entries(CAMERA_FIELDS) as [keyof CameraDetails, string][]).map(([key, label]) => <label key={key} className="text-sm font-medium">{label}<input name={key} value={draft.exif[key] ?? ""} maxLength={200} onChange={(event) => setDraft({ ...draft, exif: { ...draft.exif, [key]: event.target.value } })} className={fieldClass} /></label>)}</div></div>
+        <div className="sm:col-span-2"><h3 className="font-display text-xl">Camera details <span className="font-sans text-sm font-normal text-muted">(optional)</span></h3><p className="mt-2 text-xs leading-relaxed text-muted">Read from the original photograph when available. Add, correct, or clear any field, including for film.</p><div className="mt-4 grid gap-4 sm:grid-cols-2">{(Object.entries(CAMERA_FIELDS) as [keyof CameraDetails, string][]).map(([key, label]) => <label key={key} className="text-sm font-medium">{label}<input name={key} value={draft.exif[key] ?? ""} maxLength={200} onChange={(event) => setDraft({ ...draft, exif: { ...draft.exif, [key]: event.target.value } })} className={fieldClass} /></label>)}</div></div>
       </fieldset>
       <div className="mt-6 flex flex-wrap items-center justify-between gap-4"><p className="max-w-md text-xs leading-relaxed text-muted">Publishing makes the photograph and the details above public.</p><button disabled={busy || blocked} className={buttonClass}>{readingMetadata ? "Reading metadata…" : progress || "Publish photograph ↗"}</button></div>
     </form>
     <div aria-live="polite" aria-atomic="true">{error && <p role="alert" className="mt-5 rounded-lg bg-red-50 p-4 text-sm text-red-800">{error}</p>}{success && <p className="mt-5 rounded-lg bg-green-50 p-4 text-sm text-green-800">{success} <Link href="/photos" className="underline">View the journal</Link></p>}</div>
-    <section className="mt-14"><div className="mb-6 flex items-baseline justify-between"><h2 className="font-[family-name:var(--font-playfair)] text-3xl">Published photographs</h2><span className="text-sm text-muted">{photos.length} entries</span></div>
+    <section className="mt-14"><div className="mb-6 flex items-baseline justify-between"><h2 className="font-display text-3xl">Published photographs</h2><span className="text-sm text-muted">{photos.length} entries</span></div>
       {loadFailed && <p role="alert" className="mb-5 text-sm text-red-700">Could not load the journal. Check your R2 connection and refresh.</p>}
       {photos.length === 0 ? <p className="rounded-xl border border-dashed border-border p-8 text-center text-muted">Your first photograph starts the collection.</p> : <ul className="divide-y divide-border">{photos.map((photo) => <li key={photo.id} className="flex items-center gap-4 py-5">
         <Image src={photo.imageUrl} alt="" width={80} height={80} sizes="80px" className="h-20 w-20 shrink-0 rounded-lg object-cover" />

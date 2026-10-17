@@ -104,6 +104,19 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+### Tests
+
+Tests use Node's built-in test runner and need Node 22.15 or newer.
+
+```bash
+npm test                  # unit tests
+npm run test:coverage     # unit tests + coverage report (fails below the minimums)
+npm run test:integration  # runs the real app against local R2 and webhook fixtures
+npm run lint && npm run typecheck
+```
+
+GitHub Actions runs all of these, plus a production build, on every pull request.
+
 ---
 
 ## Tech Stack

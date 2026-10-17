@@ -3,12 +3,12 @@ import Image from "next/image";
 
 export const mdxComponents: MDXComponents = {
   h1: ({ children }) => (
-    <h1 className="font-[family-name:var(--font-playfair)] mt-12 mb-4 text-4xl font-bold leading-tight text-foreground first:mt-0">
+    <h1 className="font-display mt-12 mb-4 text-4xl font-bold leading-tight text-foreground first:mt-0">
       {children}
     </h1>
   ),
   h2: ({ children }) => (
-    <h2 className="font-[family-name:var(--font-playfair)] mt-10 mb-4 text-3xl font-bold leading-tight text-foreground">
+    <h2 className="font-display mt-10 mb-4 text-3xl font-bold leading-tight text-foreground">
       {children}
     </h2>
   ),
@@ -71,6 +71,7 @@ export const mdxComponents: MDXComponents = {
         alt={alt ?? ""}
         width={1200}
         height={675}
+        sizes="(max-width: 768px) calc(100vw - 48px), 720px"
         className="h-auto w-full object-cover"
       />
     </span>

@@ -1,14 +1,12 @@
 import { timingSafeEqual } from "node:crypto";
+import { privateJson } from "@/lib/http";
 
+// The folder is `%5Fselfcheck` because `_folders` are private in the App Router;
+// this one is served at /_selfcheck.
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const SERVICE = "nextjs-portfolio";
-
-const JSON_HEADERS = {
-  "content-type": "application/json",
-  "cache-control": "no-store",
-};
 
 function getVersion(): string {
   const sha = process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.GIT_COMMIT_SHA;
@@ -35,29 +33,26 @@ export async function GET(req: Request) {
   };
 
   if (!isAuthed(req)) {
-    return Response.json(base, { headers: JSON_HEADERS });
+    return privateJson(base);
   }
 
   const mem = process.memoryUsage();
-  return Response.json(
-    {
-      ...base,
-      uptime_seconds: Math.floor(process.uptime()),
-      runtime: {
-        node: process.version,
-        platform: process.platform,
-      },
-      memory: {
-        rss_mb: Math.round(mem.rss / 1024 / 1024),
-        heap_used_mb: Math.round(mem.heapUsed / 1024 / 1024),
-        heap_total_mb: Math.round(mem.heapTotal / 1024 / 1024),
-      },
-      deployment: {
-        region: process.env.VERCEL_REGION ?? null,
-        environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? null,
-        commit: process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.GIT_COMMIT_SHA ?? null,
-      },
+  return privateJson({
+    ...base,
+    uptime_seconds: Math.floor(process.uptime()),
+    runtime: {
+      node: process.version,
+      platform: process.platform,
     },
-    { headers: JSON_HEADERS },
-  );
+    memory: {
+      rss_mb: Math.round(mem.rss / 1024 / 1024),
+      heap_used_mb: Math.round(mem.heapUsed / 1024 / 1024),
+      heap_total_mb: Math.round(mem.heapTotal / 1024 / 1024),
+    },
+    deployment: {
+      region: process.env.VERCEL_REGION ?? null,
+      environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? null,
+      commit: process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.GIT_COMMIT_SHA ?? null,
+    },
+  });
 }

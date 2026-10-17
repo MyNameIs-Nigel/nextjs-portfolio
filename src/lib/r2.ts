@@ -6,7 +6,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { randomUUID } from "node:crypto";
 import { unstable_cache } from "next/cache";
 import { cache } from "react";
-import { MAX_PHOTO_BYTES, PHOTO_ID, PHOTO_TYPES, parsePhoto, parsePhotoFields, sortPhotos, type Photo } from "./photo-schema";
+import { MAX_PHOTO_BYTES, PHOTO_ID, isPhotoType, parsePhoto, parsePhotoFields, photoImageKey, sortPhotos, validImageKey, type Photo } from "./photo-schema";
 
 export const R2_ENV = ["R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET_NAME", "R2_PUBLIC_URL"] as const;
 
@@ -42,7 +42,8 @@ export function photoImageUrl(photo: Photo) {
   return `${base}/${photo.imageKey.split("/").map(encodeURIComponent).join("/")}`;
 }
 
-const entryKey = (id: string) => `photos/entries/${id}.json`;
+const ENTRY_PREFIX = "photos/entries/";
+const entryKey = (id: string) => `${ENTRY_PREFIX}${id}.json`;
 
 export async function readPhotos(): Promise<Photo[]> {
   if (missingR2Settings().length === R2_ENV.length) return [];
@@ -50,9 +51,9 @@ export async function readPhotos(): Promise<Photo[]> {
   const keys: string[] = [];
   let cursor: string | undefined;
   do {
-    const result = await client.send(new ListObjectsV2Command({ Bucket: bucket, Prefix: "photos/entries/", ContinuationToken: cursor }));
+    const result = await client.send(new ListObjectsV2Command({ Bucket: bucket, Prefix: ENTRY_PREFIX, ContinuationToken: cursor }));
     for (const item of result.Contents ?? []) {
-      const id = item.Key?.slice("photos/entries/".length, -5);
+      const id = item.Key?.slice(ENTRY_PREFIX.length, -".json".length);
       if (item.Key?.endsWith(".json") && id && PHOTO_ID.test(id)) keys.push(item.Key);
     }
     cursor = result.IsTruncated ? result.NextContinuationToken : undefined;
@@ -85,11 +86,11 @@ export const getPhotoStream = cache(async () => {
   }
 });
 
-export async function prepareUpload(contentType: string) {
-  if (!Object.hasOwn(PHOTO_TYPES, contentType)) throw new Error("Upload a JPEG, PNG, or WebP image.");
+export async function prepareUpload(contentType: unknown) {
+  if (!isPhotoType(contentType)) throw new Error("Upload a JPEG, PNG, or WebP image.");
   const { client, bucket } = storage();
   const id = randomUUID();
-  const imageKey = `photos/images/${id}.${PHOTO_TYPES[contentType as keyof typeof PHOTO_TYPES]}`;
+  const imageKey = photoImageKey(id, contentType);
   const url = await getSignedUrl(client, new PutObjectCommand({
     Bucket: bucket, Key: imageKey, ContentType: contentType,
     CacheControl: "public, max-age=31536000, immutable",
@@ -102,10 +103,10 @@ export async function publishPhoto(input: Record<string, unknown>) {
   const id = input.id;
   if (typeof id !== "string" || !PHOTO_ID.test(id)) throw new Error("Invalid upload ID.");
   const imageKey = input.imageKey;
-  if (typeof imageKey !== "string" || !new RegExp(`^photos/images/${id}\\.(webp|jpg|png)$`).test(imageKey)) throw new Error("Invalid image key.");
+  if (!validImageKey(id, imageKey)) throw new Error("Invalid image key.");
   const { client, bucket } = storage();
   const uploaded = await client.send(new HeadObjectCommand({ Bucket: bucket, Key: imageKey }));
-  if (!uploaded.ContentLength || uploaded.ContentLength > MAX_PHOTO_BYTES || !uploaded.ContentType || !Object.hasOwn(PHOTO_TYPES, uploaded.ContentType)) {
+  if (!uploaded.ContentLength || uploaded.ContentLength > MAX_PHOTO_BYTES || !isPhotoType(uploaded.ContentType)) {
     throw new Error("The uploaded image is missing, too large, or has an unsupported format.");
   }
   const timestamp = new Date().toISOString();
