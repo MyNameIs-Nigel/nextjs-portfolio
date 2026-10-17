@@ -27,7 +27,7 @@ export default function BlogPage() {
             <p className="mb-4 text-sm font-medium uppercase tracking-[0.25em] text-white/50">
               Writing
             </p>
-            <h1 className="font-[family-name:var(--font-playfair)] text-5xl font-bold text-white sm:text-6xl lg:text-7xl">
+            <h1 className="font-display text-5xl font-bold text-white sm:text-6xl lg:text-7xl">
               Blog
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/60">

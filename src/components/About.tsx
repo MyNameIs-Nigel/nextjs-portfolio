@@ -52,7 +52,7 @@ export default function About() {
             initial={{ opacity: 0, y: 20 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-3 font-[family-name:var(--font-playfair)] text-4xl font-bold tracking-tight sm:text-5xl"
+            className="mt-3 font-display text-4xl font-bold tracking-tight sm:text-5xl"
           >
             Crafting visuals
             <br />
@@ -91,7 +91,7 @@ export default function About() {
           >
             {stats.map((stat) => (
               <div key={stat.label}>
-                <span className="font-[family-name:var(--font-playfair)] text-3xl font-bold text-accent">
+                <span className="font-display text-3xl font-bold text-accent">
                   {stat.value}
                 </span>
                 <p className="mt-1 text-sm text-muted">{stat.label}</p>

@@ -125,7 +125,7 @@ function PostCard({ post, index }: { post: PostMeta; index: number }) {
         </div>
 
         {/* Title */}
-        <h2 className="font-[family-name:var(--font-playfair)] mb-2 text-xl font-bold leading-snug text-foreground transition-colors group-hover:text-accent">
+        <h2 className="font-display mb-2 text-xl font-bold leading-snug text-foreground transition-colors group-hover:text-accent">
           {post.title}
         </h2>
 

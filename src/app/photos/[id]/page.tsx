@@ -39,7 +39,7 @@ export default async function PhotoPage({ params }: Props) {
     <main id="main-content" className="mx-auto min-h-screen max-w-7xl px-6 pb-24 pt-32 lg:px-12 lg:pt-40">
       <Link href="/photos" className="mb-10 inline-block text-sm text-muted hover:text-accent">← Back to the journal</Link>
       <div className="flex min-h-72 flex-col items-center justify-center border-y border-border px-6 py-16 text-center">
-        <h1 className="font-[family-name:var(--font-playfair)] text-3xl">A moment, please.</h1>
+        <h1 className="font-display text-3xl">A moment, please.</h1>
         <p className="mt-4 max-w-sm leading-relaxed text-muted">This photograph is temporarily unavailable. Please check back shortly.</p>
       </div>
     </main>

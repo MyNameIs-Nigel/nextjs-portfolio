@@ -42,7 +42,7 @@ export default async function PhotosPage({ searchParams }: Props) {
       <main id="main-content" className="min-h-screen">
         <header className="mx-auto max-w-7xl px-6 pb-14 pt-36 lg:px-12 lg:pb-20 lg:pt-44">
           <div className="flex items-center gap-3 text-xs font-medium uppercase tracking-[0.22em] text-accent"><span className="h-px w-10 bg-accent" /> An ongoing collection</div>
-          <h1 className="mt-5 font-[family-name:var(--font-playfair)] text-5xl tracking-tight sm:text-7xl lg:text-8xl">Photo journal<span className="text-accent">.</span></h1>
+          <h1 className="mt-5 font-display text-5xl tracking-tight sm:text-7xl lg:text-8xl">Photo journal<span className="text-accent">.</span></h1>
           <div className="mt-7 flex flex-col justify-between gap-5 border-b border-border pb-8 sm:flex-row sm:items-end">
             <p className="max-w-md text-lg leading-relaxed text-muted">New photographs, small observations,<br className="hidden sm:block" /> and moments worth keeping.</p>
             <p className="text-xs uppercase tracking-[0.16em] text-muted">Digital &amp; film <span className="mx-2 text-border">/</span> Newest first</p>
@@ -53,8 +53,8 @@ export default async function PhotosPage({ searchParams }: Props) {
             <div className="space-y-20 lg:space-y-28">{visible.map((photo, index) => <PhotoFigure key={photo.id} photo={photo} priority={index === 0} />)}</div>
           ) : (
             <div className="flex min-h-72 flex-col items-center justify-center border-y border-border px-6 py-16 text-center">
-              <span className="mb-6 font-[family-name:var(--font-playfair)] text-5xl text-stone-300" aria-hidden="true">↗</span>
-              <h2 className="font-[family-name:var(--font-playfair)] text-3xl">{status === "unavailable" ? "A moment, please." : "A new chapter is coming."}</h2>
+              <span className="mb-6 font-display text-5xl text-stone-300" aria-hidden="true">↗</span>
+              <h2 className="font-display text-3xl">{status === "unavailable" ? "A moment, please." : "A new chapter is coming."}</h2>
               <p className="mt-4 max-w-sm leading-relaxed text-muted">{status === "unavailable" ? "The journal is temporarily unavailable. Please check back shortly." : "The first entries will be here soon. In the meantime, explore a few favorites from my portfolio."}</p>
               <Link href="/#work" className="mt-7 border-b border-accent pb-1 text-sm font-medium text-accent">Explore selected work <span aria-hidden="true">↗</span></Link>
             </div>

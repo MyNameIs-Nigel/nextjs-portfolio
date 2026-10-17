@@ -24,8 +24,8 @@ export default function PhotoFigure({ photo, priority = false, detail = false }:
   );
   const media = detail ? image : <Link href={href} className="block transition-opacity hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent" aria-label={`View ${photo.title}`}>{image}</Link>;
   const title = (className: string) => detail
-    ? <h1 className={`font-[family-name:var(--font-playfair)] ${className}`}>{photo.title}</h1>
-    : <h2 className={`font-[family-name:var(--font-playfair)] ${className}`}><Link href={href} className="hover:text-accent">{photo.title}</Link></h2>;
+    ? <h1 className={`font-display ${className}`}>{photo.title}</h1>
+    : <h2 className={`font-display ${className}`}><Link href={href} className="hover:text-accent">{photo.title}</Link></h2>;
   const caption = photo.caption && <p className="mt-3 whitespace-pre-line text-base leading-relaxed text-muted">{photo.caption}</p>;
 
   if (portrait) return (

@@ -71,7 +71,7 @@ export default function Contact() {
             initial={{ opacity: 0, y: 20 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="mt-3 font-[family-name:var(--font-playfair)] text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl"
+            className="mt-3 font-display text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl"
           >
             Let&apos;s capture
             <br />
@@ -173,7 +173,7 @@ export default function Contact() {
                   />
                 </svg>
               </div>
-              <h3 className="font-[family-name:var(--font-playfair)] text-2xl font-bold text-white">
+              <h3 className="font-display text-2xl font-bold text-white">
                 Message Sent!
               </h3>
               <p className="mt-2 text-stone-400">

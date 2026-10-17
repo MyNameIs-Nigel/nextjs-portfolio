@@ -50,7 +50,7 @@ export default function Navbar() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-12">
           <Link
             href="/"
-            className={`font-[family-name:var(--font-playfair)] text-xl font-bold tracking-tight transition-colors ${
+            className={`font-display text-xl font-bold tracking-tight transition-colors ${
               showSolid ? "text-foreground" : "text-white"
             }`}
           >
@@ -140,7 +140,7 @@ export default function Navbar() {
                   href={link.href}
                   aria-current={pathname === link.href ? "page" : undefined}
                   onClick={() => setMobileOpen(false)}
-                  className="font-[family-name:var(--font-playfair)] text-3xl font-bold text-foreground"
+                  className="font-display text-3xl font-bold text-foreground"
                 >
                   {link.label}
                 </Link>
