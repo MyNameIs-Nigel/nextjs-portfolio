@@ -6,11 +6,12 @@ import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 import { getDailyHeroImage } from "@/lib/hero-images";
 import type { Metadata } from "next";
-import { siteDescription } from "@/lib/site";
+import { siteOpenGraph } from "@/lib/site";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
-  openGraph: { title: "Nigel Smith — Photographer", description: siteDescription, url: "/", type: "website", siteName: "Nigel Smith Photography", locale: "en_US" },
+  // A page's openGraph replaces the layout's, so restate the shared fields.
+  openGraph: { ...siteOpenGraph, url: "/" },
 };
 
 // Re-evaluate at least hourly so the daily rotation advances on the

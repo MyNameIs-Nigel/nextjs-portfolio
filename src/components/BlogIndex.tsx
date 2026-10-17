@@ -4,23 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import type { PostMeta, Category } from "@/lib/blog-types";
-import { CATEGORIES } from "@/lib/blog-types";
-
-const CATEGORY_COLORS: Record<Category, string> = {
-  Automotive: "bg-amber-100 text-amber-800",
-  Classwork: "bg-blue-100 text-blue-800",
-  "Coding Projects": "bg-emerald-100 text-emerald-800",
-  Photography: "bg-rose-100 text-rose-800",
-};
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
+import { CATEGORIES, CATEGORY_COLORS, formatPostDate, type Category, type PostMeta } from "@/lib/blog-types";
 
 interface Props {
   posts: PostMeta[];
@@ -119,7 +103,7 @@ function PostCard({ post, index }: { post: PostMeta; index: number }) {
 
         {/* Meta */}
         <div className="mb-2 flex items-center gap-3 text-xs text-muted">
-          <time dateTime={post.date}>{formatDate(post.date)}</time>
+          <time dateTime={post.date}>{formatPostDate(post.date)}</time>
           <span>·</span>
           <span>{post.readingTime}</span>
         </div>

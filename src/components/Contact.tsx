@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
+import { CONTACT_LIMITS } from "@/lib/contact";
 
 export default function Contact() {
   const ref = useRef(null);
@@ -197,6 +198,7 @@ export default function Contact() {
                   id="name"
                   name="name"
                   required
+                  maxLength={CONTACT_LIMITS.name}
                   className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-stone-500 outline-none transition-colors focus:border-accent"
                   placeholder="Your name"
                 />
@@ -213,6 +215,7 @@ export default function Contact() {
                     type="email"
                     id="email"
                     name="email"
+                    maxLength={CONTACT_LIMITS.email}
                     className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-stone-500 outline-none transition-colors focus:border-accent"
                     placeholder="your@email.com"
                   />
@@ -228,6 +231,7 @@ export default function Contact() {
                     type="tel"
                     id="phone"
                     name="phone"
+                    maxLength={CONTACT_LIMITS.phone}
                     className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-stone-500 outline-none transition-colors focus:border-accent"
                     placeholder="+1 (555) 000-0000"
                   />
@@ -271,6 +275,7 @@ export default function Contact() {
                   name="message"
                   rows={4}
                   required
+                  maxLength={CONTACT_LIMITS.message}
                   className="w-full resize-none rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-stone-500 outline-none transition-colors focus:border-accent"
                   placeholder="Tell me about your project..."
                 />

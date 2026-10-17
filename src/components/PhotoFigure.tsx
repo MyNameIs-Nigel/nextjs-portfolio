@@ -7,7 +7,7 @@ import { photoImageUrl } from "@/lib/r2";
 // Rendered width of a photo capped at 85svh tall; --ar is width / height.
 const FIT_WIDTH = "w-[min(100%,calc(85svh*var(--ar)))]";
 
-export default function PhotoFigure({ photo, priority = false, detail = false }: { photo: Photo; priority?: boolean; detail?: boolean }) {
+export default function PhotoFigure({ photo, preload = false, detail = false }: { photo: Photo; preload?: boolean; detail?: boolean }) {
   // Portraits sit beside their details, editorial style; everything else runs full width with the caption below.
   const portrait = photo.height > photo.width;
   const href = `/photos/${photo.id}`;
@@ -18,7 +18,7 @@ export default function PhotoFigure({ photo, priority = false, detail = false }:
     <Image
       src={photoImageUrl(photo)} alt={photo.alt || photo.title} width={photo.width} height={photo.height}
       sizes={portrait ? "(max-width: 768px) calc(100vw - 48px), (max-width: 1280px) 58vw, 690px" : "(max-width: 768px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 96px), 1184px"}
-      priority={priority}
+      preload={preload}
       className="block h-auto w-full bg-stone-100 shadow-paper"
     />
   );

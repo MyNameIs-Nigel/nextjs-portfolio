@@ -41,15 +41,3 @@ body {
   background: var(--color-muted);
   border-radius: 3px;
 }
-
-/* Video play button overlay */
-.video-overlay::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.15);
-  transition: background 0.3s ease;
-}
-.video-overlay:hover::after {
-  background: rgba(0, 0, 0, 0.05);
-}

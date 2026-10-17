@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { parsePhoto, parsePhotoFields, sortPhotos, validDate, formatPhotoDate } from "../src/lib/photo-schema.ts";
+import { parsePhoto, parsePhotoFields, sortPhotos, validDate, formatPhotoDate, isPhotoType, photoImageKey, validImageKey, parsePageNumber, photoPagePath, photoPageCount, photosOnPage, PHOTO_PAGE_SIZE, MAX_PHOTO_EDGE } from "../src/lib/photo-schema.ts";
+import { fullDate, isCalendarDate } from "../src/lib/dates.ts";
 import { jsonLd } from "../src/lib/site.ts";
 
 const id = "e1fd1c57-281f-4e77-8c45-aa13af33d498";
@@ -56,4 +57,39 @@ test("JSON-LD prevents captions from terminating the script element", () => {
   const encoded = jsonLd(payload);
   assert.equal(encoded.includes("<"), false);
   assert.deepEqual(JSON.parse(encoded), payload);
+});
+
+test("partial dates pad to a real calendar day without timezone math", () => {
+  assert.equal(fullDate("1998"), "1998-01-01");
+  assert.equal(fullDate("1998-06"), "1998-06-01");
+  assert.equal(fullDate("1998-06-12"), "1998-06-12");
+  for (const date of ["2024-02-29", "1998-06", "1998"]) assert.equal(isCalendarDate(date), true, date);
+  for (const date of ["2025-02-29", "2026-04-31", "1998-13", "1998-00"]) assert.equal(isCalendarDate(date), false, date);
+});
+
+test("only supported formats get an image key, and each key belongs to one photo", () => {
+  for (const type of ["image/jpeg", "image/png", "image/webp"]) assert.equal(isPhotoType(type), true, type);
+  for (const type of ["image/gif", "image/heic", "toString", "", undefined, 42]) assert.equal(isPhotoType(type), false, String(type));
+  assert.equal(photoImageKey(id, "image/jpeg"), `photos/images/${id}.jpg`);
+  assert.equal(validImageKey(id, `photos/images/${id}.webp`), true);
+  assert.equal(validImageKey(id, `photos/images/${id}.gif`), false);
+  assert.equal(validImageKey(id, `photos/images/00000000-0000-4000-8000-000000000001.jpg`), false);
+  assert.equal(validImageKey("../x", "photos/images/../x.jpg"), false);
+  assert.equal(validImageKey(id, undefined), false);
+  assert.throws(() => parsePhotoFields({ ...fields, width: MAX_PHOTO_EDGE + 1 }), new RegExp(`${MAX_PHOTO_EDGE} pixels`));
+});
+
+test("journal pages are 1-based, with the first page at the bare /photos path", () => {
+  assert.equal(parsePageNumber(undefined), 1);
+  assert.equal(parsePageNumber("3"), 3);
+  for (const value of ["0", "-1", "01", "1.5", "two", "", ["1", "2"], "9".repeat(20)]) assert.equal(parsePageNumber(value), null, String(value));
+  assert.equal(photoPagePath(1), "/photos");
+  assert.equal(photoPagePath(2), "/photos?page=2");
+  assert.equal(photoPageCount(0), 1, "an empty journal still has its first page");
+  assert.equal(photoPageCount(PHOTO_PAGE_SIZE), 1);
+  assert.equal(photoPageCount(PHOTO_PAGE_SIZE + 1), 2);
+  const items = Array.from({ length: 25 }, (_, index) => index);
+  assert.deepEqual(photosOnPage(items, 1), items.slice(0, 10));
+  assert.deepEqual(photosOnPage(items, 3), [20, 21, 22, 23, 24]);
+  assert.deepEqual(photosOnPage(items, 4), []);
 });

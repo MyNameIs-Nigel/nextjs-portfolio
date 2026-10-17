@@ -49,7 +49,7 @@ export default async function PhotoPage({ params }: Props) {
     <Navbar />
     <main id="main-content" className="mx-auto min-h-screen max-w-7xl px-6 pb-24 pt-32 lg:px-12 lg:pt-40">
       <Link href="/photos" className="mb-10 inline-block text-sm text-muted hover:text-accent">← Back to the journal</Link>
-      <PhotoFigure photo={photo} priority detail />
+      <PhotoFigure photo={photo} preload detail />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd({
         "@context": "https://schema.org", "@type": "ImageObject", "@id": absoluteUrl(`/photos/${photo.id}`),
         url: absoluteUrl(`/photos/${photo.id}`), contentUrl: photoImageUrl(photo), name: photo.title, description: photo.alt || photo.title,

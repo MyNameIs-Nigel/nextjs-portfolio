@@ -5,37 +5,31 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PhotoFigure from "@/components/PhotoFigure";
 import { getPhotoStream, photoImageUrl } from "@/lib/r2";
-import { PHOTO_PAGE_SIZE } from "@/lib/photo-schema";
+import { PHOTO_PAGE_SIZE, parsePageNumber, photoPageCount, photoPagePath, photosOnPage } from "@/lib/photo-schema";
 import { absoluteUrl, jsonLd } from "@/lib/site";
 
 type Props = { searchParams: Promise<{ page?: string | string[] }> };
-function pageNumber(value: string | string[] | undefined) {
-  if (value === undefined) return 1;
-  if (typeof value !== "string" || !/^[1-9]\d*$/.test(value) || !Number.isSafeInteger(Number(value))) return null;
-  return Number(value);
-}
-const pagePath = (page: number) => page === 1 ? "/photos" : `/photos?page=${page}`;
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const page = pageNumber((await searchParams).page) ?? 1;
+  const page = parsePageNumber((await searchParams).page) ?? 1;
   const title = page === 1 ? "Photo Journal — Nigel Smith" : `Photo Journal, Page ${page} — Nigel Smith`;
   const description = "An ongoing photo journal by Nigel Smith. New photographs, small observations, and moments worth keeping, in digital and on film.";
   return {
-    title, description, alternates: { canonical: pagePath(page) },
-    openGraph: { title, description, url: pagePath(page), type: "website", images: [absoluteUrl("/opengraph-image.jpg")] },
+    title, description, alternates: { canonical: photoPagePath(page) },
+    openGraph: { title, description, url: photoPagePath(page), type: "website", images: [absoluteUrl("/opengraph-image.jpg")] },
     twitter: { card: "summary_large_image", title, description, images: [absoluteUrl("/opengraph-image.jpg")] },
   };
 }
 
 export default async function PhotosPage({ searchParams }: Props) {
   const query = await searchParams;
-  const page = pageNumber(query.page);
+  const page = parsePageNumber(query.page);
   if (page === null) notFound();
   if (query.page === "1") redirect("/photos");
   const { photos, status } = await getPhotoStream();
-  const pages = Math.max(1, Math.ceil(photos.length / PHOTO_PAGE_SIZE));
+  const pages = photoPageCount(photos.length);
   if (page > pages && status === "ready") notFound();
-  const visible = photos.slice((page - 1) * PHOTO_PAGE_SIZE, page * PHOTO_PAGE_SIZE);
+  const visible = photosOnPage(photos, page);
   return (
     <>
       <Navbar />
@@ -50,7 +44,7 @@ export default async function PhotosPage({ searchParams }: Props) {
         </header>
         <div className="mx-auto max-w-7xl px-6 pb-24 lg:px-12 lg:pb-32">
           {visible.length > 0 ? (
-            <div className="space-y-20 lg:space-y-28">{visible.map((photo, index) => <PhotoFigure key={photo.id} photo={photo} priority={index === 0} />)}</div>
+            <div className="space-y-20 lg:space-y-28">{visible.map((photo, index) => <PhotoFigure key={photo.id} photo={photo} preload={index === 0} />)}</div>
           ) : (
             <div className="flex min-h-72 flex-col items-center justify-center border-y border-border px-6 py-16 text-center">
               <span className="mb-6 font-display text-5xl text-stone-300" aria-hidden="true">↗</span>
@@ -60,14 +54,14 @@ export default async function PhotosPage({ searchParams }: Props) {
             </div>
           )}
           {pages > 1 && <nav aria-label="Photo journal pages" className="mt-20 flex items-center justify-between border-t border-border pt-8 text-sm">
-            {page > 1 ? <Link href={pagePath(page - 1)} className="hover:text-accent">← Newer photos</Link> : <span />}
+            {page > 1 ? <Link href={photoPagePath(page - 1)} className="hover:text-accent">← Newer photos</Link> : <span />}
             <span className="text-muted">{page} / {pages}</span>
-            {page < pages ? <Link href={pagePath(page + 1)} className="hover:text-accent">Older photos →</Link> : <span />}
+            {page < pages ? <Link href={photoPagePath(page + 1)} className="hover:text-accent">Older photos →</Link> : <span />}
           </nav>}
           <div className="mt-24 flex items-center justify-between border-t border-border pt-6 text-xs uppercase tracking-[0.15em] text-muted"><span>Seen through my eyes</span><Link href="/#contact" className="hover:text-accent">Let’s make something ↗</Link></div>
         </div>
         {visible.length > 0 && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd({
-          "@context": "https://schema.org", "@type": "CollectionPage", name: "Photo Journal — Nigel Smith", url: absoluteUrl(pagePath(page)),
+          "@context": "https://schema.org", "@type": "CollectionPage", name: "Photo Journal — Nigel Smith", url: absoluteUrl(photoPagePath(page)),
           mainEntity: { "@type": "ItemList", itemListElement: visible.map((photo, index) => ({
             "@type": "ListItem", position: (page - 1) * PHOTO_PAGE_SIZE + index + 1, url: absoluteUrl(`/photos/${photo.id}`), name: photo.title,
             image: photoImageUrl(photo),

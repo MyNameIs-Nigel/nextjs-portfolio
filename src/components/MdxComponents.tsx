@@ -71,6 +71,7 @@ export const mdxComponents: MDXComponents = {
         alt={alt ?? ""}
         width={1200}
         height={675}
+        sizes="(max-width: 768px) calc(100vw - 48px), 720px"
         className="h-auto w-full object-cover"
       />
     </span>

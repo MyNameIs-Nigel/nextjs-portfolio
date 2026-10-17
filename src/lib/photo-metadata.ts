@@ -1,3 +1,4 @@
+import { isCalendarDate } from "./dates";
 import type { CameraDetails } from "./photo-schema";
 
 export type PhotoAutofill = { title: string; caption: string; alt: string; date: string; exif: CameraDetails };
@@ -40,9 +41,7 @@ function captureDate(value: unknown) {
   const matched = /^(\d{4})(?:[:-]?(\d{2})(?:[:-]?(\d{2}))?)?(?=$|[T ])/u.exec(raw);
   if (!matched || Number(matched[1]) < 1000) return "";
   const date = [matched[1], matched[2], matched[3]].filter(Boolean).join("-");
-  const full = date.length === 4 ? `${date}-01-01` : date.length === 7 ? `${date}-01` : date;
-  const parsed = new Date(`${full}T12:00:00Z`);
-  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === full ? date : "";
+  return isCalendarDate(date) ? date : "";
 }
 
 export function normalizePhotoMetadata(tags: Record<string, unknown>): PhotoAutofill {

@@ -10,9 +10,9 @@ export default function Hero({ src }: { src: string }) {
         src={src}
         alt=""
         fill
-        priority
+        preload
         sizes="100vw"
-        className="absolute inset-0 h-full w-full object-cover"
+        className="object-cover"
       />
 
       {/* Dark overlay gradient */}

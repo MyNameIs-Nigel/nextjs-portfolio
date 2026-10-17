@@ -3,14 +3,16 @@ import { spawn } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { setTimeout as wait } from "node:timers/promises";
 import { startR2Fixture } from "./fixtures/r2-server.mjs";
+import { startWebhookFixture } from "./fixtures/webhook-server.mjs";
 
 const fixture = await startR2Fixture();
+const webhook = await startWebhookFixture();
 const port = process.env.PHOTO_TEST_PORT || "4310";
 const origin = `http://localhost:${port}`;
 const password = "integration-test-only-password-1234567890";
 let output = "";
 const app = spawn(process.execPath, ["node_modules/next/dist/bin/next", "dev", "--port", port], {
-  env: { ...process.env, NODE_ENV: "development", SITE_URL: origin, PHOTO_ADMIN_PASSWORD: password, R2_ACCOUNT_ID: "test-account", R2_ACCESS_KEY_ID: "test-access-key", R2_SECRET_ACCESS_KEY: "test-secret-key", R2_BUCKET_NAME: "test-bucket", R2_PUBLIC_URL: fixture.origin, R2_LOCAL_ENDPOINT: fixture.origin, NEXT_TELEMETRY_DISABLED: "1" },
+  env: { ...process.env, NODE_ENV: "development", SITE_URL: origin, PHOTO_ADMIN_PASSWORD: password, R2_ACCOUNT_ID: "test-account", R2_ACCESS_KEY_ID: "test-access-key", R2_SECRET_ACCESS_KEY: "test-secret-key", R2_BUCKET_NAME: "test-bucket", R2_PUBLIC_URL: fixture.origin, R2_LOCAL_ENDPOINT: fixture.origin, DISCORD_WEBHOOK: webhook.url, SELFCHECK_TOKEN: "", NEXT_TELEMETRY_DISABLED: "1" },
   stdio: ["ignore", "pipe", "pipe"],
 });
 app.stdout.on("data", (chunk) => { output = (output + chunk).slice(-12000); });
@@ -108,7 +110,28 @@ try {
 
   const blog = await fetch(`${origin}/blog`);
   assert.equal(blog.status, 200);
-  assert.doesNotMatch(await blog.text(), /name="robots" content="noindex/);
+  const blogIndex = await blog.text();
+  assert.doesNotMatch(blogIndex, /name="robots" content="noindex/);
+  assert.match(blogIndex, /<time dateTime="2026-03-12">March 12, 2026<\/time>/);
+  const post = await (await fetch(`${origin}/blog/building-this-portfolio`)).text();
+  assert.match(post, /<time dateTime="2026-03-12">March 12, 2026<\/time>/);
+  assert.match(post, /Last updated: <time dateTime="2026-03-16">March 16, 2026<\/time>/);
+  assert.equal((await fetch(`${origin}/blog/not-a-post`)).status, 404);
+
+  // The home page renders the daily hero, the portfolio, and a contact form bounded like the API.
+  const home = await (await fetch(`${origin}/`)).text();
+  assert.match(home, /\/hero\/hero\d+\.jpg/);
+  assert.match(home, /Selected Work/);
+  assert.match(home, /name="message"[^>]*maxLength="1024"/);
+  const health = await fetch(`${origin}/_selfcheck`);
+  assert.equal(health.status, 200, "/_selfcheck must be routable");
+  assert.equal((await health.json()).status, "ok");
+  assert.equal((await api("/api/contact", { name: "Ada" })).status, 400);
+  const sent = await api("/api/contact", { name: "Ada Lovelace", email: "ada@example.com", phone: "", project: "portrait", message: "Hello from the integration test." });
+  assert.equal(sent.status, 200);
+  assert.deepEqual(await sent.json(), { ok: true });
+  assert.equal(webhook.deliveries.length, 1);
+  assert.equal(webhook.deliveries[0].body.embeds[0].fields.at(-1).value, "Hello from the integration test.");
   assert.ok((await (await fetch(`${origin}/robots.txt`)).text()).includes(`Sitemap: ${origin}/sitemap.xml`));
 
   // Invalidate cached records, then simulate a storage outage. The journal can
@@ -121,7 +144,7 @@ try {
   assert.match(await (await fetch(`${origin}/photos`)).text(), /Morning fog/);
   const logout = await api("/api/photos/session", {}, { method: "DELETE", cookie });
   assert.match(logout.headers.get("set-cookie"), /Max-Age=0/);
-  console.log("Integration checks passed: auth/CSRF, paginated R2 reads, signed upload, publishing, optional metadata, approximate film dates, public EXIF, sitemap refresh, removal, outage recovery, retained blog, and logout.");
+  console.log("Integration checks passed: auth/CSRF, paginated R2 reads, signed upload, publishing, optional metadata, approximate film dates, public EXIF, sitemap refresh, removal, outage recovery, retained blog, home page, health check, contact delivery, and logout.");
   if (process.env.KEEP_PHOTO_PREVIEW === "1") {
     console.log(`Fixture preview: ${origin}/photos (test data only)`);
     await new Promise((resolve) => process.once("SIGTERM", resolve));
@@ -132,4 +155,5 @@ try {
 } finally {
   app.kill("SIGTERM");
   await new Promise((resolve) => fixture.server.close(resolve));
+  await new Promise((resolve) => webhook.server.close(resolve));
 }

@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { adminPassword, createSession, passwordMatches, SESSION_COOKIE, SESSION_SECONDS } from "@/lib/photo-session";
-import { privateJson, readJson, sameOrigin } from "@/lib/photo-auth";
+import { privateJson, readJson, sameOrigin } from "@/lib/http";
 
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return privateJson({ error: "Invalid request origin." }, 403);
