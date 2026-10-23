@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { motion, useInView } from "framer-motion";
 
 const stats = [
@@ -81,6 +82,10 @@ export default function About() {
             I bring the same commitment to visual excellence and narrative
             clarity.
           </motion.p>
+
+          <Link href="/about" className="mt-8 inline-flex w-fit items-center gap-5 border-b border-accent pb-2 text-sm font-medium text-accent transition-colors hover:text-accent-hover">
+            More about me <span aria-hidden="true">↗</span>
+          </Link>
 
           {/* Stats */}
           <motion.div
