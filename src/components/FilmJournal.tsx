@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import type { FilmFrame } from "@/lib/about-film";
+import type { FilmFrame } from "@/lib/film";
 
 export default function FilmJournal({ frames }: { frames: FilmFrame[] }) {
   const journal = useRef<HTMLDivElement>(null);
@@ -52,7 +52,7 @@ export default function FilmJournal({ frames }: { frames: FilmFrame[] }) {
                     }
                   }}>
 
-                  <Image src={`/images/about-film/${frame.id}.webp`} alt="" width={landscape ? 2100 : 1400} height={landscape ? 1400 : 2100} sizes="260px" className={landscape ? "film-scan film-scan--rotated" : "film-scan"} />
+                  <Image src={`/images/film/${frame.id}.webp`} alt="" width={landscape ? 2100 : 1400} height={landscape ? 1400 : 2100} sizes="260px" className={landscape ? "film-scan film-scan--rotated" : "film-scan"} />
                 </a>
                 <span className="film-edge film-edge--number">{number} <span>▸</span> {number}A</span>
               </div>
@@ -64,7 +64,7 @@ export default function FilmJournal({ frames }: { frames: FilmFrame[] }) {
       {frames.map((frame, index) => {
         const number = String(index + 1).padStart(2, "0");
         const landscape = frame.orientation === "landscape";
-        const src = `/images/about-film/${frame.id}.webp`;
+        const src = `/images/film/${frame.id}.webp`;
         return (
           <section className={`film-scene film-scene--${frame.orientation}`} id={frame.id} key={frame.id} aria-labelledby={`${frame.id}-title`}>
             <div className="film-projection" id={`projection-${frame.id}`}>
