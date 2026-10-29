@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    agentUpgrade: "security",
+  },
   output: 'standalone',
   // Ensure the hero images are traced into the server bundle so the daily
   // rotation can read public/hero at runtime (e.g. on Vercel serverless).
@@ -17,6 +20,9 @@ const nextConfig: NextConfig = {
         hostname: "images.unsplash.com",
       },
     ],
+  },
+  async redirects() {
+    return [{ source: "/about", destination: "/film", permanent: true }];
   },
   async headers() {
     return [
